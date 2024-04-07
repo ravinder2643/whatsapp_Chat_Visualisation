@@ -79,17 +79,30 @@ def most_common_words(selected_user,df):
     most_common_df = pd.DataFrame(Counter(words).most_common(20))
     return most_common_df
 
-def emoji_helper(selected_user,df):
+def emoji_helper(selected_user, df):
     if selected_user != 'Overall':
         df = df[df['user'] == selected_user]
 
     emojis = []
     for message in df['message']:
-        emojis.extend([c for c in message if c in emoji.UNICODE_EMOJI['en']])
+        # Use demojize to replace emojis with descriptions and filter for emojis
+        emojis.extend([c for c in emoji.demojize(message) if c in emoji.UNICODE_EMOJIS])
 
     emoji_df = pd.DataFrame(Counter(emojis).most_common(len(Counter(emojis))))
 
     return emoji_df
+
+# def emoji_helper(selected_user,df):
+#     if selected_user != 'Overall':
+#         df = df[df['user'] == selected_user]
+
+#     emojis = []
+#     for message in df['message']:
+#         emojis.extend([c for c in message if c in emoji.UNICODE_EMOJI['en']])
+
+#     emoji_df = pd.DataFrame(Counter(emojis).most_common(len(Counter(emojis))))
+
+#     return emoji_df
 
 def monthly_timeline(selected_user,df):
 
@@ -129,11 +142,24 @@ def month_activity_map(selected_user,df):
 
     return df['month'].value_counts()
 
-def activity_heatmap(selected_user,df):
+# def activity_heatmap(selected_user,df):
 
+#     if selected_user != 'Overall':
+#         df = df[df['user'] == selected_user]
+
+#     user_heatmap = df.pivot_table(index='day_name', columns='period', values='message', aggfunc='count').fillna(0)
+
+#     return user_heatmap
+
+def activity_heatmap(selected_user, df):
     if selected_user != 'Overall':
         df = df[df['user'] == selected_user]
 
+    # Ensure 'day_name' and 'period' columns contain hashable types
+    df['day_name'] = df['day_name'].astype(str)
+    df['period'] = df['period'].astype(str)
+
+    # Pivot table with 'day_name' as index, 'period' as columns, and 'message' count as values
     user_heatmap = df.pivot_table(index='day_name', columns='period', values='message', aggfunc='count').fillna(0)
 
     return user_heatmap
